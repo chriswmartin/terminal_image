@@ -84,10 +84,10 @@ int process_image(int resize_width, int resize_height, char *image, char *output
   MagickBrightnessContrastImage(m_wand, brightness, contrast);
 	
   // save our edited image
-	MagickWriteImage(m_wand,output_name);
-	
-	if(m_wand)m_wand = DestroyMagickWand(m_wand);	
-	MagickWandTerminus();
+  MagickWriteImage(m_wand,output_name);
+
+  if(m_wand)m_wand = DestroyMagickWand(m_wand);	
+  MagickWandTerminus();
 
   return 0;
 }
@@ -109,8 +109,8 @@ unsigned char * get_image_pixels(char *image){
   // export the grayscale ("I") value of all pixels into the array we just allocated space for
   MagickExportImagePixels(m_wand, 0,0,width,height, "I", CharPixel, buffer);
 	
-	if(m_wand)m_wand = DestroyMagickWand(m_wand);	
-	MagickWandTerminus();
+  if(m_wand)m_wand = DestroyMagickWand(m_wand);	
+  MagickWandTerminus();
 
   // return the pixel array so that we can use it when displaying the image later
   return buffer;
@@ -180,7 +180,7 @@ int check_file(char *file){
 
 // print usage text
 int print_usage_and_exit(char *program_name){
-    printf("please provide at least one image to analyze\nadditionally you may specify an output width and height\n\nusage: %s -w [number] -h [number] img1 img2 img3...\n", program_name);
+  printf("please provide at least one image to analyze\nadditionally you may specify an output width and height\n\nusage: %s -w [number] -h [number] img1 img2 img3...\n", program_name);
 
   exit(1);
 }

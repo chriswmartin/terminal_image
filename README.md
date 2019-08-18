@@ -8,29 +8,29 @@
 ### [ImageMagick](https://github.com/ImageMagick/ImageMagick)
 
 OSX
-```console
+```ShellSession
 $ brew install imagemagick
 ```
 Ubuntu
-```console
+```ShellSession
 $ apt install imagemagick
 ```
 Arch Linux
-```console
+```ShellSession
 $ pacman -S imagemagick
 ```
 
 ## Building
 
-```console
+```ShellSession
 $ cd terminal_image
 $ make
 ```
 
-## usage
+## Usage
 
 Run terminal_image with any number of images as arguments. Additionally you may provide width and height values to alter the output dimensions using the -w and -h flags. 
 
-```console
+```ShellSession
 $ ./terminal_image -w [width] -h [height] img1 img2 img2 ...
 ```
