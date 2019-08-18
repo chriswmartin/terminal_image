@@ -73,12 +73,12 @@ int process_image(int resize_width, int resize_height, char *image, char *output
 
   // read the original image
   MagickReadImage(m_wand,image);
-	
+
   // resize the image
-  MagickResizeImage(m_wand, resize_width, resize_height, LanczosFilter);	
+  MagickResizeImage(m_wand, resize_width, resize_height, LanczosFilter);
 
   // convert the image to grayscale
-	MagickQuantizeImage(m_wand, number_of_colors, GRAYColorspace, tree_depth, NoDitherMethod, MagickFalse);
+  MagickQuantizeImage(m_wand, number_of_colors, GRAYColorspace, tree_depth, NoDitherMethod, MagickFalse);
 
   // increate the contrast
   MagickBrightnessContrastImage(m_wand, brightness, contrast);
@@ -86,7 +86,7 @@ int process_image(int resize_width, int resize_height, char *image, char *output
   // save our edited image
   MagickWriteImage(m_wand,output_name);
 
-  if(m_wand)m_wand = DestroyMagickWand(m_wand);	
+  if(m_wand)m_wand = DestroyMagickWand(m_wand);
   MagickWandTerminus();
 
   return 0;
