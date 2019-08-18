@@ -67,10 +67,10 @@ int process_image(int resize_width, int resize_height, char *image, char *output
   int brightness = 0;
   int contrast = 50;
 
-  MagickWand *m_wand = NULL;	
-	MagickWandGenesis();
-	m_wand = NewMagickWand();
-	
+  MagickWand *m_wand = NULL;
+  MagickWandGenesis();
+  m_wand = NewMagickWand();
+
   // read the original image
   MagickReadImage(m_wand,image);
 	
@@ -93,10 +93,10 @@ int process_image(int resize_width, int resize_height, char *image, char *output
 }
 
 unsigned char * get_image_pixels(char *image){
-  MagickWand *m_wand = NULL;	
-	MagickWandGenesis();
-	m_wand = NewMagickWand();
-	
+  MagickWand *m_wand = NULL;
+  MagickWandGenesis();
+  m_wand = NewMagickWand();
+
   MagickReadImage(m_wand,image);
 
   // determine how much memory will need to be allocated for all of our pixels
