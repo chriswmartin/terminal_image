@@ -145,7 +145,7 @@ unsigned char * get_image_pixels(char *colorspace, char *image){
       MagickExportImagePixels(m_wand, 0,0,width,height, "I", CharPixel, buffer);
   }
 
-  // destropy MagickWand
+  // destroy MagickWand
   if(m_wand)m_wand = DestroyMagickWand(m_wand);	
   MagickWandTerminus();
 

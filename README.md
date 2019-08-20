@@ -1,6 +1,7 @@
 # Terminal Image
 
-![Example output using an image of Mona Lisa](docs/images/example_mona_lisa.png)
+![Example output using an image of Mona Lisa](docs/images/example_mona-lisa.png)
+![Example output using an image of Starry Night](docs/images/example_starry-night.png)
 
 
 ## Requirements
