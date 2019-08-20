@@ -31,7 +31,7 @@ int main (int argc, char *argv[]){
   while ((i = getopt (argc, argv, ":w:h::c")) != -1){
     switch (i){
       case 'w':
-        width = atoi(optarg);
+        width = atoi(optarg) * 2;
         break;
       case 'h':
         height = atoi(optarg);
@@ -155,7 +155,7 @@ unsigned char * get_image_pixels(char *colorspace, char *image){
 
 int display_image(int width, int height, char *colorspace, unsigned char *buffer){
   if (strcmp(colorspace, "color") == 0){
-      // True Color ANSI code
+      // truecolor ANSI code
       int red = 0;
       int green = 0;
       int blue = 0;
@@ -170,10 +170,13 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
         red = buffer[i-1];
         green = buffer[i];
         blue = buffer[i+1];
-        text = "0 ";
+        text = "0";
 
         // print truecolor string with the current pixel's RGB value
-        printf("\x1b[38;2;%d;%d;%dm%s\x1b[0m", red, green, blue, text);
+        // '\x1b[48;2;%d;%d;%dm' sets the background color 
+        // '\x1b[38;2;%d;%d;%dm%s' sets the foreground color
+        // '\x1b[0m' resets all colors
+        printf("\x1b[48;2;%d;%d;%dm\x1b[38;2;%d;%d;%dm%s\x1b[0m", red, green, blue, red, green, blue, text);
          
         x++; 
         if(x%width == 0 && x!=pixels){
@@ -198,13 +201,13 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
           // if the current pixel is darker than the threshold replace it with a red '0'
           buffer[i-1] = 0;
           printf("%s", red);
-          printf("%d ", buffer[i-1]);
+          printf("%d", buffer[i-1]);
           printf("%s", reset);
         } else {
           // if the current pixel is lighter than the threshold replace it with a green '1'
           buffer[i-1] = 1;
           printf("%s", green);
-          printf("%d ", buffer[i-1]);
+          printf("%d", buffer[i-1]);
           printf("%s", reset);
         }
         if(i%width == 0 && i!=pixels){
