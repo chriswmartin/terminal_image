@@ -74,11 +74,6 @@ int main (int argc, char *argv[]){
 }
 
 int process_image(int resize_width, int resize_height, char *colorspace, char *image, char *output_name){
-  int number_of_colors = 16;
-  int tree_depth = 1;
-  int brightness = 0;
-  int contrast = 50;
-
   // initialize MagickWand
   MagickWand *m_wand = NULL;
   MagickWandGenesis();
@@ -90,16 +85,18 @@ int process_image(int resize_width, int resize_height, char *colorspace, char *i
   // resize the image
   MagickResizeImage(m_wand, resize_width, resize_height, LanczosFilter);
 
-  if (strcmp(colorspace, "color") == 0){
-    // convert the image to RGBColorspace
-    MagickQuantizeImage(m_wand, number_of_colors, RGBColorspace, tree_depth, NoDitherMethod, MagickFalse);
-  } else {
-      // convert the image to Grayscale
-      MagickQuantizeImage(m_wand, number_of_colors, GRAYColorspace, tree_depth, NoDitherMethod, MagickFalse);
-  }
+  if (strcmp(colorspace, "grayscale") == 0){
+    int number_of_colors = 16;
+    int tree_depth = 1;
+    int brightness = 0;
+    int contrast = 50;
+      
+    // convert the image to Grayscale
+    MagickQuantizeImage(m_wand, number_of_colors, GRAYColorspace, tree_depth, NoDitherMethod, MagickFalse);
 
-  // increate the contrast
-  MagickBrightnessContrastImage(m_wand, brightness, contrast);
+    // increate the contrast
+    MagickBrightnessContrastImage(m_wand, brightness, contrast);
+  }
 
   // set image depth to 8 after other transformations - mostly to help get correct RGB pixel values
   MagickSetImageDepth(m_wand, 8);
@@ -170,7 +167,7 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
         red = buffer[i-1];
         green = buffer[i];
         blue = buffer[i+1];
-        text = "0";
+        text = " ";
 
         // print truecolor string with the current pixel's RGB value
         // '\x1b[48;2;%d;%d;%dm' sets the background color 
