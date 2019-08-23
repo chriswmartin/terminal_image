@@ -1,26 +1,33 @@
 #include <stdio.h>
 #include <MagickWand/MagickWand.h>
+#include <sys/ioctl.h>
 #include <magic.h>
 #include <string.h>
 #include <unistd.h>
 
-int process_image(int resize_width, int resize_height, char *colorspace, char *image, char *output_name);
-unsigned char * get_image_pixels(char *colorspace, char *image);
-int display_image(int width, int height, char *colorspace, unsigned char *buffer);
+// create a struct to hold our resized image dimensions
+struct resized_image_dimensions{int width, height;};
+
+struct resized_image_dimensions resize_image(int width, int height, char *image, char *output_name);
+int process_image(char *colorspace, char *image, char *output_name);
+unsigned char * get_image_pixels(int width, int height, char *colorspace, char *image);
+int display_image(int width, int height, char *colorspace, char *image, unsigned char *buffer);
 int check_file(char *file);
 int print_usage_and_exit(char *program_name);
 
 int main (int argc, char *argv[]){
   // default width & height values to use if none are provided as arguments
-  int width = 16;
-  int height = 16;
+  int width = 0, height = 0;
 
-  // default colorspace value if -c isn't set as an argument
-  char *colorspace = "grayscale";
+  // initialize a struct to hold our resized image dimensions
+  struct resized_image_dimensions dimensions;
+  
+  // default colorspace value if -m isn't set as an argument
+  char *colorspace = "color";
 
   // temporary file for imagemagick operations
   char *tmp_file = "/tmp/terminal_image_tmp.jpg";
-
+  
   // if there is not at least one argument exit
   if(argc < 2){
     print_usage_and_exit(argv[0]);
@@ -28,16 +35,26 @@ int main (int argc, char *argv[]){
 
   // parse width, height, & colorspace  options using getopt()
   int i;
-  while ((i = getopt (argc, argv, ":w:h::c")) != -1){
+  while ((i = getopt (argc, argv, ":w:h::m")) != -1){
     switch (i){
       case 'w':
-        width = atoi(optarg) * 2;
+        if (atoi(optarg) >= 1){
+          width = atoi(optarg) * 2;
+        } else {
+            printf("width needs to be equal to or greater than 1\n");
+            exit(1);
+        }
         break;
       case 'h':
-        height = atoi(optarg);
+        if (atoi(optarg) >= 1){
+          height = atoi(optarg);
+        } else {
+            printf("height needs to be equal to or greater than 1\n");
+            exit(1);
+        }
         break;
-      case 'c':
-        colorspace = "color";
+      case 'm':
+        colorspace = "monochrome";
         break;
       default:
         abort();
@@ -51,17 +68,23 @@ int main (int argc, char *argv[]){
 
   // iterate through non width & height arguments provided
   for (int i=optind; i < argc; i++){
-    // check if argument is an image file
+    // check if the argument is an image file
     check_file(argv[i]);
     
-    // scale -> convert to grayscale -> increase contrast
-    process_image(width, height, colorspace, argv[i], tmp_file);
+    // resize image
+    // if -w & -h flags are used resize to chosen size
+    // otherwise proportionally resize to fit terminal window
+    dimensions = resize_image(width, height, argv[i], tmp_file);
+
+    // color mode: set depth to 8 bit
+    // monochrome mode: convert to grayscale -> increase contrast -> set depth to 8 bit
+    process_image(colorspace, tmp_file, tmp_file);
     
-    // create an array of all grayscale pixel values in the image
-    unsigned char *buffer = get_image_pixels(colorspace, tmp_file);
+    // create an array of all pixels values in the image
+    unsigned char *buffer = get_image_pixels(dimensions.width, dimensions.height, colorspace, tmp_file);
     
     // format the pixel values then display them
-    display_image(width, height, colorspace, buffer);
+    display_image(dimensions.width, dimensions.height, colorspace, tmp_file, buffer);
 
     // free memory allocated for the pixel array
     free(buffer);
@@ -73,7 +96,65 @@ int main (int argc, char *argv[]){
   return 0;
 }
 
-int process_image(int resize_width, int resize_height, char *colorspace, char *image, char *output_name){
+struct resized_image_dimensions resize_image(int width, int height, char *image, char *output_name){
+  
+  struct resized_image_dimensions dimensions;
+
+  // initialize MagickWand
+  MagickWand *m_wand = NULL;
+  MagickWandGenesis();
+  m_wand = NewMagickWand();
+
+  // read the original image
+  MagickReadImage(m_wand,image);
+  
+  if (width >= 1 && height >= 1){
+    dimensions.width = width;
+    dimensions.height = height;
+
+    // resize the image
+    MagickResizeImage(m_wand, width, height, LanczosFilter);
+  } else {
+      struct winsize w;
+      ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+  
+      int terminal_width = w.ws_col;
+      int terminal_height = w.ws_row;
+  
+      int image_width = MagickGetImageWidth(m_wand);
+      int image_height = MagickGetImageHeight(m_wand);
+
+      double ratio = 0; 
+      double ratioX = (double) terminal_width / (double) image_width;
+      double ratioY = (double) terminal_height / (double) image_height;
+
+      if (ratioX > ratioY){
+        ratio = ratioY;
+      } else {
+          ratio = ratioX;
+      }
+
+      int width = image_width * ratio;
+      int height = image_height * ratio;
+
+      dimensions.width = width;
+      dimensions.height = height;
+  
+      // resize the image
+      MagickResizeImage(m_wand, width, height, LanczosFilter);
+    }
+  
+  // save our edited image
+  MagickWriteImage(m_wand,output_name);
+
+  // destroy MagickWand
+  if(m_wand)m_wand = DestroyMagickWand(m_wand);
+  MagickWandTerminus();
+
+  return dimensions; 
+}
+
+int process_image(char *colorspace, char *image, char *output_name){
   // initialize MagickWand
   MagickWand *m_wand = NULL;
   MagickWandGenesis();
@@ -82,10 +163,7 @@ int process_image(int resize_width, int resize_height, char *colorspace, char *i
   // read the original image
   MagickReadImage(m_wand,image);
 
-  // resize the image
-  MagickResizeImage(m_wand, resize_width, resize_height, LanczosFilter);
-
-  if (strcmp(colorspace, "grayscale") == 0){
+  if (strcmp(colorspace, "monochrome") == 0){
     int number_of_colors = 16;
     int tree_depth = 1;
     int brightness = 0;
@@ -111,7 +189,7 @@ int process_image(int resize_width, int resize_height, char *colorspace, char *i
   return 0;
 }
 
-unsigned char * get_image_pixels(char *colorspace, char *image){
+unsigned char * get_image_pixels(int width, int height, char *colorspace, char *image){
   // initialize MagickWand
   MagickWand *m_wand = NULL;
   MagickWandGenesis();
@@ -122,17 +200,13 @@ unsigned char * get_image_pixels(char *colorspace, char *image){
   unsigned char *buffer = NULL;
 
   // read out processed image
-  MagickReadImage(m_wand,image);
-
-  // determine how much memory will need to be allocated for all of our pixels
-  int width = MagickGetImageWidth(m_wand);
-  int height = MagickGetImageHeight(m_wand);
+  MagickReadImage(m_wand, image);
 
   if (strcmp(colorspace, "color") == 0){
     // allocate memory
     buffer = calloc(width * height * 3,1);
   
-    // export the grayscale ("RGB") value of all pixels into the array we just allocated space for
+    // export the color ("RGB") values of all pixels into the array we just allocated space for
     MagickExportImagePixels(m_wand, 0,0,width,height, "RGB", CharPixel, buffer);
   } else {
       // allocate memory
@@ -150,7 +224,7 @@ unsigned char * get_image_pixels(char *colorspace, char *image){
   return buffer;
 }
 
-int display_image(int width, int height, char *colorspace, unsigned char *buffer){
+int display_image(int width, int height, char *colorspace, char *image, unsigned char *buffer){
   if (strcmp(colorspace, "color") == 0){
       // truecolor ANSI code
       int red = 0;
@@ -215,6 +289,7 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
     }
 
   printf("\n\n");
+
   return 0;
 }
 
@@ -244,7 +319,7 @@ int check_file(char *file){
 
 // print usage text
 int print_usage_and_exit(char *program_name){
-  printf("please provide at least one image to analyze\nadditionally you may specify an output width and height using -w & -h flags as well as color mode with -c\n\nusage: %s -c -w [number] -h [number] img1 img2 img3...\n", program_name);
+  printf("please provide at least one image to analyze\nadditionally you may specify an output width and height using -w & -h flags as well as monochrome mode with -m\n\nusage: %s -w [number] -h [number] img1 img2 img3...\n", program_name);
 
   exit(1);
 }

@@ -31,8 +31,8 @@ $ make
 
 ## Usage
 
-Run terminal_image with any number of images as arguments. Additionally you may enable full color mode with the -c flag and provide width and height values to alter the output dimensions using the -w and -h flags.
+Run terminal_image with any number of images as arguments. Additionally you may enable monochrome mode with the -m flag and provide width and height values to alter the output dimensions using the -w and -h flags. By default terminal_image will display input images in color at a size scaled to fit your currrent terminal window dimensions.
 
 ```ShellSession
-$ ./terminal_image -c -w [width] -h [height] img1 img2 img2 ...
+$ ./terminal_image -w [width] -h [height] img1 img2 img2 ...
 ```
