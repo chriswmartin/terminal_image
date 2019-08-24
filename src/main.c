@@ -11,7 +11,7 @@ struct resized_image_dimensions{int width, height;};
 struct resized_image_dimensions resize_image(int width, int height, char *image, char *output_name);
 int process_image(char *colorspace, char *image, char *output_name);
 unsigned char * get_image_pixels(int width, int height, char *colorspace, char *image);
-int display_image(int width, int height, char *colorspace, char *image, unsigned char *buffer);
+int display_image(int width, int height, char *colorspace, unsigned char *buffer);
 int check_file(char *file);
 int print_usage_and_exit(char *program_name);
 
@@ -84,7 +84,7 @@ int main (int argc, char *argv[]){
     unsigned char *buffer = get_image_pixels(dimensions.width, dimensions.height, colorspace, tmp_file);
     
     // format the pixel values then display them
-    display_image(dimensions.width, dimensions.height, colorspace, tmp_file, buffer);
+    display_image(dimensions.width, dimensions.height, colorspace, buffer);
 
     // free memory allocated for the pixel array
     free(buffer);
@@ -224,7 +224,7 @@ unsigned char * get_image_pixels(int width, int height, char *colorspace, char *
   return buffer;
 }
 
-int display_image(int width, int height, char *colorspace, char *image, unsigned char *buffer){
+int display_image(int width, int height, char *colorspace, unsigned char *buffer){
   if (strcmp(colorspace, "color") == 0){
       // truecolor ANSI code
       int red = 0;
