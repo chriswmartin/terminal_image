@@ -34,5 +34,7 @@ $ make
 Run terminal_image with any number of images as arguments. Additionally you may enable monochrome mode with the -m flag and provide width and height values to alter the output dimensions using the -w and -h flags. By default terminal_image will display input images in color at a size scaled to fit your currrent terminal window dimensions.
 
 ```ShellSession
-$ ./terminal_image -w [width] -h [height] img1 img2 img2 ...
+$ ./terminal_image img                                        # display an image in color scaled to fit your terminal window
+$ ./terminal_image -w [width] -h [height] img1 img2 img2      # display multiple images in color at a specific scale
+$ ./terminal_image -m -w [width] -h [height] img              # display an image in monochrome mode at a specific scale
 ```
