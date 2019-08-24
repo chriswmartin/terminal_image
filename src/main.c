@@ -121,7 +121,7 @@ struct resized_image_dimensions resize_image(int width, int height, char *image,
       int terminal_width = w.ws_col;
       int terminal_height = w.ws_row;
   
-      int image_width = MagickGetImageWidth(m_wand);
+      int image_width = MagickGetImageWidth(m_wand) * 2;
       int image_height = MagickGetImageHeight(m_wand);
 
       double ratio = 0; 
@@ -139,7 +139,7 @@ struct resized_image_dimensions resize_image(int width, int height, char *image,
 
       dimensions.width = width;
       dimensions.height = height;
-  
+
       // resize the image
       MagickResizeImage(m_wand, width, height, LanczosFilter);
     }
