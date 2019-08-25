@@ -10,31 +10,31 @@
 ### [ImageMagick](https://github.com/ImageMagick/ImageMagick)
 
 OSX
-```ShellSession
-$ brew install imagemagick
+```bash
+brew install imagemagick
 ```
 Ubuntu
-```ShellSession
-$ apt install imagemagick
+```bash
+apt install imagemagick
 ```
 Arch Linux
-```ShellSession
-$ pacman -S imagemagick
+```bash
+pacman -S imagemagick
 ```
 
 ## Building
 
-```ShellSession
-$ cd terminal_image
-$ make
+```bash
+cd terminal_image
+make
 ```
 
 ## Usage
 
-Run terminal_image with any number of images as arguments. Additionally you may enable monochrome mode with the -m flag and provide width and height values to alter the output dimensions using the -w and -h flags. By default terminal_image will display input images in color at a size scaled to fit your currrent terminal window dimensions.
+Run terminal_image with any number of images as arguments. You may specify enable 'color' or 'monochrome' output using the --colorspace flag and using the --width and --height flags you can alter the output dimensions. By default terminal_image will display input images in color at a size scaled to fit your currrent terminal window dimensions.
 
 ```bash
-terminal_image img                                        # display an image in color scaled to fit your terminal window
-terminal_image -w [width] -h [height] img1 img2 img2      # display multiple images in color at a specific scale
-terminal_image -m -w [width] -h [height] img              # display an image in monochrome mode at a specific scale
+terminal_image img                                                        # display an image in color scaled to fit your terminal window
+terminal_image --colorspace=color --width=10 --height=10 img1 img2 img2   # display multiple images in color at 10x10 scale
+terminal_image --colorspace=monochrome --width 50 --height=50 img         # display an image in monochrome mode at 50x50 scale
 ```
