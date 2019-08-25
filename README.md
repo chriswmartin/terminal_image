@@ -36,5 +36,5 @@ Run terminal_image with any number of images as arguments. You may specify enabl
 ```bash
 terminal_image img                                                        # display an image in color scaled to fit your terminal window
 terminal_image --colorspace=color --width=10 --height=10 img1 img2 img2   # display multiple images in color at 10x10 scale
-terminal_image --colorspace=monochrome --width 50 --height=50 img         # display an image in monochrome mode at 50x50 scale
+terminal_image --colorspace=monochrome --width=50 --height=50 img         # display an image in monochrome mode at 50x50 scale
 ```
