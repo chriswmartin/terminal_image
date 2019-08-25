@@ -66,10 +66,10 @@ int main (int argc, char *argv[]){
       break;
     case 'c':
       if (optarg != NULL) {
-        if (strncmp(optarg, "color", 5) == 0 || strncmp(optarg, "monochrome", 10) == 0){
+        if (strncmp(optarg, "color", 5) == 0 || strncmp(optarg, "monochrome", 10) == 0 || strncmp(optarg, "plaintext", 9) == 0){
           colorspace = optarg;
         } else {
-            printf("please specify either 'color' or 'monochrome'\n");  
+            printf("please specify either 'color', 'monochrome', or 'plaintext'\n");  
             exit(1);
         }
       } 
@@ -107,7 +107,7 @@ int main (int argc, char *argv[]){
     dimensions = resize_image(width, height, argv[i], tmp_file);
 
     // color mode: set depth to 8 bit
-    // monochrome mode: convert to grayscale -> increase contrast -> set depth to 8 bit
+    // monochrome & plaintext mode: convert to grayscale -> increase contrast -> set depth to 8 bit
     process_image(colorspace, tmp_file, tmp_file);
     
     // create an array of all pixels values in the image
@@ -196,7 +196,7 @@ int process_image(char *colorspace, char *image, char *output_name){
   // read the original image
   MagickReadImage(m_wand,image);
 
-  if (strncmp(colorspace, "monochrome", 10) == 0){
+  if (strncmp(colorspace, "monochrome", 10) == 0 || strncmp(colorspace, "plaintext", 9) == 0){
     int number_of_colors = 16;
     int tree_depth = 1;
     int brightness = 0;
@@ -235,7 +235,7 @@ unsigned char * get_image_pixels(int width, int height, char *colorspace, char *
   // read out processed image
   MagickReadImage(m_wand, image);
 
-  if (strncmp(colorspace, "color", 10) == 0){
+  if (strncmp(colorspace, "color", 5) == 0){
     // allocate memory
     buffer = calloc(width * height * 3,1);
   
@@ -289,7 +289,7 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
         }
 
       }
-    } else {
+    } else if (strncmp(colorspace, "monochrome", 10) == 0){
       char *red="\033[1;31m";
       char *green="\033[1;32m";
       char *reset="\033[0m";
@@ -319,7 +319,32 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
           printf("\n");
         }
       }
-    }
+      } else {
+          // plaintext mode
+          // don't print any colors - just 1s & 0s
+
+          // define a darkness/lightness threshold
+          int threshold = 127;
+    
+          int pixels = width * height;
+    
+          // iterate through all pixels
+          for(int i=1; i<pixels+1; i++){
+            if(buffer[i-1] <= threshold ){
+              // if the current pixel is darker than the threshold replace it with a '0'
+              buffer[i-1] = 0;
+              printf("%d", buffer[i-1]);
+            } else {
+                // if the current pixel is lighter than the threshold replace it with a '1'
+                 buffer[i-1] = 1;
+                printf("%d", buffer[i-1]);
+            }
+            if(i%width == 0 && i!=pixels){
+              // break the block of pixels onto separate lines
+              printf("\n");
+            }
+          }
+      }
 
   printf("\n\n");
 
