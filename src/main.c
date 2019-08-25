@@ -275,7 +275,6 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
         green = buffer[i];
         blue = buffer[i+1];
         text = "\u2580";
-        //text = " ";
 
         // print truecolor string with the current pixel's RGB value
         // '\x1b[48;2;%d;%d;%dm' sets the background color 
