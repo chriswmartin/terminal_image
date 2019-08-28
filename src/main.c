@@ -5,7 +5,7 @@
 #include <string.h>
 #include <getopt.h>
 
-// create a struct to hold our resized image dimensions
+// define a struct to hold our resized image dimensions
 struct resized_image_dimensions{int width, height;};
 
 struct resized_image_dimensions resize_image(int width, int height, char *image, char *output_name);
@@ -13,7 +13,7 @@ int process_image(char *colorspace, char *image, char *output_name);
 unsigned char * get_image_pixels(int width, int height, char *colorspace, char *image);
 int display_image(int width, int height, char *colorspace, unsigned char *buffer);
 int check_file(char *file);
-int print_usage_and_exit(char *program_name);
+int print_usage_and_exit(void);
 
 int main (int argc, char *argv[]){
   // default width & height values if --width & --height flags aren't used
@@ -26,11 +26,14 @@ int main (int argc, char *argv[]){
   struct resized_image_dimensions dimensions;
 
   // temporary file for imagemagick operations
+  // TODO: use tmpfile() along with MagickWand
+  // file descriptor functions:
+  // MagickReadImageFile() & MagickWriteImageFile
   char *tmp_file = "/tmp/terminal_image_tmp.jpg";
   
   // if there is not at least one argument exit
   if(argc < 2){
-    print_usage_and_exit(argv[0]);
+    print_usage_and_exit();
   }
 
   // parse width, height, & colorspace  options using getopt()
@@ -42,7 +45,8 @@ int main (int argc, char *argv[]){
   };
 
   int c;
-  while ((c = getopt_long(argc, argv, "w:h:c:W;", longopts, NULL)) != -1) {
+  while ((c = getopt_long(argc, argv, "w:h:c:", longopts, NULL)) != -1) {
+  //while ((c = getopt_long(argc, argv, "w:h:c:W;", longopts, NULL)) != -1) {
     switch (c) {
     case 'w':
       if (optarg != NULL) {
@@ -66,10 +70,10 @@ int main (int argc, char *argv[]){
       break;
     case 'c':
       if (optarg != NULL) {
-        if (strncmp(optarg, "color", 5) == 0 || strncmp(optarg, "monochrome", 10) == 0 || strncmp(optarg, "plaintext", 9) == 0){
+        if (strncmp(optarg, "color", 5) == 0 || strncmp(optarg, "monochrome", 10) == 0 || strncmp(optarg, "plain-text", 10) == 0){
           colorspace = optarg;
         } else {
-            printf("please specify either 'color', 'monochrome', or 'plaintext'\n");  
+            printf("please specify either 'color', 'monochrome', or 'plain-text'\n");  
             exit(1);
         }
       } 
@@ -93,7 +97,7 @@ int main (int argc, char *argv[]){
 
   // if there is not at least one image provided in addition to width and height options - exit
   if (optind >= argc){
-    print_usage_and_exit(argv[0]);
+    print_usage_and_exit();
   }
 
   // iterate through non width, height, colorspace arguments provided
@@ -196,7 +200,7 @@ int process_image(char *colorspace, char *image, char *output_name){
   // read the original image
   MagickReadImage(m_wand,image);
 
-  if (strncmp(colorspace, "monochrome", 10) == 0 || strncmp(colorspace, "plaintext", 9) == 0){
+  if (strncmp(colorspace, "monochrome", 10) == 0 || strncmp(colorspace, "plain-text", 10) == 0){
     int number_of_colors = 16;
     int tree_depth = 1;
     int brightness = 0;
@@ -376,8 +380,23 @@ int check_file(char *file){
 }
 
 // print usage text
-int print_usage_and_exit(char *program_name){
-  printf("please provide at least one image to analyze\nadditionally you may specify an output width and height using --width & --height flags as well as a colorspace value with --colorspace\n\nusage: %s --width=[number] --height=[number] --colorspace=[color or monochrome] img1 img2 img3...\n", program_name);
+int print_usage_and_exit(void){
+//int print_usage_and_exit(char *program_name){
+ //printf("please provide at least one image to analyze\nadditionally you may specify an output width and height using --width & --height flags as well as a colorspace value with --colorspace\n\nusage: %s --width=[number] --height=[number] --colorspace=[color or monochrome] img1 img2 img3.. \n", program_name);
+
+  printf("USAGE:\n"
+         "terminal_image [options] [image]\n\n"
+         "--width, -w <number>\n"
+         "     set width of output, must be used in conjunction with --height\n\n"
+         "--height -h <number>\n"
+         "     set height of output, must be used in conjunction with --width\n\n"
+         "--colorspace, -c <color|monochrome|plain-text>\n"
+         "     set colorspace of output\n"
+         "     possible values:\n"
+         "          color: 24-bit True Color\n"
+         "          monochrome: represents image using red '0's for dark areas and green '1's for light areas\n"
+         "          plain-text: the same as monochrome but the '0's and '1's are not colored\n"
+      );
 
   exit(1);
 }
