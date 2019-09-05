@@ -385,7 +385,7 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
 }
 
 // RGB color values for 'limit' mode
-int colors[13][3] = {
+int colors[][3] = {
   {255, 255, 255}, // white
   {0,0,0}, // black
   {255, 0, 0}, // red
@@ -405,7 +405,7 @@ struct closest_color_values find_closest_color(int r, int g, int b) {
   struct closest_color_values values;
   int difference = 1000;
 
-  for (int i = 0; i < 22; i++) {
+  for (int i = 0; i < sizeof(colors)/sizeof(colors[0]); i++) {
     if (sqrt(pow(r - colors[i][0],2) + pow(g - colors[i][1],2) + pow(b - colors[i][2],2)) < difference) {
       values.r = colors[i][0];
       values.g = colors[i][1];
