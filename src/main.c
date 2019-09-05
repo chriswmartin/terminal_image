@@ -263,8 +263,6 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
   switch(colorspace[0]){
 
     case 'c': { // color
-      int red = 0,  green = 0, blue = 0;
-
       char *text = "\u2580";
 
       int pixels = width * height * 3;
@@ -273,9 +271,9 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
        
       // iterate through all pixels
       for(int i=1; i<pixels+1; i=i+3){
-        red = buffer[i-1];
-        green = buffer[i];
-        blue = buffer[i+1];
+        int red = buffer[i-1];
+        int green = buffer[i];
+        int blue = buffer[i+1];
 
         // print truecolor string with the current pixel's RGB value
         // '\x1b[48;2;%d;%d;%dm' sets the background color 
@@ -351,8 +349,6 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
     }
 
     case 'l': { // limit
-      int red = 0, green = 0, blue = 0;
-
       char *text = "\u2580";
 
       int pixels = width * height * 3;
@@ -361,9 +357,9 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
        
       // iterate through all pixels
       for(int i=1; i<pixels+1; i=i+3){
-        red = buffer[i-1];
-        green = buffer[i];
-        blue = buffer[i+1];
+        int red = buffer[i-1];
+        int green = buffer[i];
+        int blue = buffer[i+1];
         struct closest_color_values values = find_closest_color(red, green, blue);
         
         printf("\x1b[48;2;%d;%d;%dm\x1b[38;2;%d;%d;%dm%s\x1b[0m", values.r, values.g, values.b, values.r, values.g, values.b, text);
@@ -384,26 +380,26 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
   return 0;
 }
 
-// RGB color values for 'limit' mode
-int colors[][3] = {
-  {255, 255, 255}, // white
-  {0,0,0}, // black
-  {255, 0, 0}, // red
-  {127, 0, 0}, // dark red
-  {0, 255, 0}, // green
-  {0, 127, 0}, // dark green
-  {127, 255, 0}, // light green
-  {0, 0, 255}, // blue
-  {0, 0, 127}, // dark blue
-  {0, 127, 255}, // light blue
-  {255, 255, 0}, // yellow
-  {255, 127, 0}, // orange
-  {127, 0, 255} // purple
-};
-
 struct closest_color_values find_closest_color(int r, int g, int b) {
   struct closest_color_values values;
   int difference = 1000;
+
+  // RGB color values for 'limit' mode
+  int colors[][3] = {
+    {255, 255, 255}, // white
+    {0,0,0}, // black
+    {255, 0, 0}, // red
+    {127, 0, 0}, // dark red
+    {0, 255, 0}, // green
+    {0, 127, 0}, // dark green
+    {127, 255, 0}, // light green
+    {0, 0, 255}, // blue
+    {0, 0, 127}, // dark blue
+    {0, 127, 255}, // light blue
+    {255, 255, 0}, // yellow
+    {255, 127, 0}, // orange
+    {127, 0, 255} // purple
+  };
 
   for (int i = 0; i < sizeof(colors)/sizeof(colors[0]); i++) {
     if (sqrt(pow(r - colors[i][0],2) + pow(g - colors[i][1],2) + pow(b - colors[i][2],2)) < difference) {
