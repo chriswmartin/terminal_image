@@ -7,11 +7,12 @@
 
 // define a struct to hold our resized image dimensions
 struct resized_image_dimensions{int width, height;};
-
 struct resized_image_dimensions resize_image(int width, int height, char *image, char *output_name);
 int process_image(char *colorspace, char *image, char *output_name);
 unsigned char * get_image_pixels(int width, int height, char *colorspace, char *image);
 int display_image(int width, int height, char *colorspace, unsigned char *buffer);
+struct closest_color_values{int r, g, b;};
+struct closest_color_values find_closest_color(int r, int g, int b);
 int check_file(char *file);
 int print_usage_and_exit(void);
 
@@ -70,20 +71,16 @@ int main (int argc, char *argv[]){
       break;
     case 'c':
       if (optarg != NULL) {
-        if (strncmp(optarg, "color", 5) == 0 || strncmp(optarg, "monochrome", 10) == 0 || strncmp(optarg, "plain-text", 10) == 0){
+        if (strncmp(optarg, "color", 5) == 0 || strncmp(optarg, "monochrome", 10) == 0 || strncmp(optarg, "plain-text", 10) == 0 || strncmp(optarg, "limit", 5) == 0){
           colorspace = optarg;
         } else {
-            printf("please specify either 'color', 'monochrome', or 'plain-text'\n");  
+            printf("please specify either 'color', 'limit', 'monochrome', or 'plain-text'\n");  
             exit(1);
         }
       } 
       break;
     case 0:
       break; 
-    #if 0
-      case 1:
-      break;
-    #endif
     case ':':
       fprintf(stderr, "%s: option `-%c' requires an argument\n", argv[0], optopt);
       break;
@@ -110,7 +107,7 @@ int main (int argc, char *argv[]){
     // otherwise proportionally resize to fit terminal window
     dimensions = resize_image(width, height, argv[i], tmp_file);
 
-    // color mode: set depth to 8 bit
+    // color & limit mode: set depth to 8 bit
     // monochrome & plaintext mode: convert to grayscale -> increase contrast -> set depth to 8 bit
     process_image(colorspace, tmp_file, tmp_file);
     
@@ -211,7 +208,8 @@ int process_image(char *colorspace, char *image, char *output_name){
 
     // increate the contrast
     MagickBrightnessContrastImage(m_wand, brightness, contrast);
-  }
+
+  } 
 
   // set image depth to 8 after other transformations - mostly to help get correct RGB pixel values
   MagickSetImageDepth(m_wand, 8);
@@ -239,7 +237,7 @@ unsigned char * get_image_pixels(int width, int height, char *colorspace, char *
   // read out processed image
   MagickReadImage(m_wand, image);
 
-  if (strncmp(colorspace, "color", 5) == 0){
+  if (strncmp(colorspace, "color", 5) == 0 || strncmp(colorspace, "limit", 5) == 0){
     // allocate memory
     buffer = calloc(width * height * 3,1);
   
@@ -262,15 +260,15 @@ unsigned char * get_image_pixels(int width, int height, char *colorspace, char *
 }
 
 int display_image(int width, int height, char *colorspace, unsigned char *buffer){
-  if (strncmp(colorspace, "color", 5) == 0){
-      // truecolor ANSI code
-      int red = 0;
-      int green = 0;
-      int blue = 0;
-      char *text = NULL;
-  
+  switch(colorspace[0]){
+
+    case 'c': { // color
+      int red = 0,  green = 0, blue = 0;
+
+      char *text = "\u2580";
+
       int pixels = width * height * 3;
-      
+
       int x = 0;
        
       // iterate through all pixels
@@ -278,7 +276,6 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
         red = buffer[i-1];
         green = buffer[i];
         blue = buffer[i+1];
-        text = "\u2580";
 
         // print truecolor string with the current pixel's RGB value
         // '\x1b[48;2;%d;%d;%dm' sets the background color 
@@ -291,9 +288,11 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
           // break the block of pixels onto separate lines
           printf("\n");
         }
-
       }
-    } else if (strncmp(colorspace, "monochrome", 10) == 0){
+      break;
+    }
+
+    case 'm': { // monochrome
       char *red="\033[1;31m";
       char *green="\033[1;32m";
       char *reset="\033[0m";
@@ -323,36 +322,100 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
           printf("\n");
         }
       }
-      } else {
-          // plaintext mode
-          // don't print any colors - just 1s & 0s
+      break;
+    }
 
-          // define a darkness/lightness threshold
-          int threshold = 127;
+    case 'p': { // plain-text
+      // define a darkness/lightness threshold
+      int threshold = 127;
+
+      int pixels = width * height;
     
-          int pixels = width * height;
-    
-          // iterate through all pixels
-          for(int i=1; i<pixels+1; i++){
-            if(buffer[i-1] <= threshold ){
-              // if the current pixel is darker than the threshold replace it with a '0'
-              buffer[i-1] = 0;
-              printf("%d", buffer[i-1]);
-            } else {
-                // if the current pixel is lighter than the threshold replace it with a '1'
-                 buffer[i-1] = 1;
-                printf("%d", buffer[i-1]);
-            }
-            if(i%width == 0 && i!=pixels){
-              // break the block of pixels onto separate lines
-              printf("\n");
-            }
+      // iterate through all pixels
+      for(int i=1; i<pixels+1; i++){
+        if(buffer[i-1] <= threshold ){
+          // if the current pixel is darker than the threshold replace it with a '0'
+          buffer[i-1] = 0;
+          printf("%d", buffer[i-1]);
+        } else {
+            // if the current pixel is lighter than the threshold replace it with a '1'
+            buffer[i-1] = 1;
+            printf("%d", buffer[i-1]);
           }
+        if(i%width == 0 && i!=pixels){
+          // break the block of pixels onto separate lines
+          printf("\n");
+        }
       }
+      break;
+    }
+
+    case 'l': { // limit
+      int red = 0, green = 0, blue = 0;
+
+      char *text = "\u2580";
+
+      int pixels = width * height * 3;
+      
+      int x = 0;
+       
+      // iterate through all pixels
+      for(int i=1; i<pixels+1; i=i+3){
+        red = buffer[i-1];
+        green = buffer[i];
+        blue = buffer[i+1];
+        struct closest_color_values values = find_closest_color(red, green, blue);
+        
+        printf("\x1b[48;2;%d;%d;%dm\x1b[38;2;%d;%d;%dm%s\x1b[0m", values.r, values.g, values.b, values.r, values.g, values.b, text);
+
+        x++; 
+        if(x%width == 0 && x!=pixels){
+          // break the block of pixels onto separate lines
+          printf("\n");
+        }
+      }
+      break;
+    }
+
+    default: exit(1); break;
+  }
 
   printf("\n\n");
-
   return 0;
+}
+
+// RGB color values for 'limit' mode
+int colors[13][3] = {
+  {255, 255, 255}, // white
+  {0,0,0}, // black
+  {255, 0, 0}, // red
+  {127, 0, 0}, // dark red
+  {0, 255, 0}, // green
+  {0, 127, 0}, // dark green
+  {127, 255, 0}, // light green
+  {0, 0, 255}, // blue
+  {0, 0, 127}, // dark blue
+  {0, 127, 255}, // light blue
+  {255, 255, 0}, // yellow
+  {255, 127, 0}, // orange
+  {127, 0, 255} // purple
+};
+
+struct closest_color_values find_closest_color(int r, int g, int b) {
+  struct closest_color_values values;
+  int difference = 1000;
+
+  for (int i = 0; i < 22; i++) {
+    if (sqrt(pow(r - colors[i][0],2) + pow(g - colors[i][1],2) + pow(b - colors[i][2],2)) < difference) {
+      values.r = colors[i][0];
+      values.g = colors[i][1];
+      values.b = colors[i][2];
+
+      difference = sqrt(pow(r - colors[i][0],2) + pow(g - colors[i][1],2) + pow(b - colors[i][2],2));
+    }
+  }
+
+  return values;
 }
 
 int check_file(char *file){
@@ -381,19 +444,17 @@ int check_file(char *file){
 
 // print usage text
 int print_usage_and_exit(void){
-//int print_usage_and_exit(char *program_name){
- //printf("please provide at least one image to analyze\nadditionally you may specify an output width and height using --width & --height flags as well as a colorspace value with --colorspace\n\nusage: %s --width=[number] --height=[number] --colorspace=[color or monochrome] img1 img2 img3.. \n", program_name);
-
   printf("USAGE:\n"
          "terminal_image [options] [image]\n\n"
          "--width, -w <number>\n"
          "     set width of output, must be used in conjunction with --height\n\n"
          "--height -h <number>\n"
          "     set height of output, must be used in conjunction with --width\n\n"
-         "--colorspace, -c <color|monochrome|plain-text>\n"
+         "--colorspace, -c <color|limit|monochrome|plain-text>\n"
          "     set colorspace of output\n"
          "     possible values:\n"
-         "          color: 24-bit True Color\n"
+         "          color: 24-bit True Color (default)\n"
+         "          limit: displays the image using a limited color palette\n"
          "          monochrome: represents image using red '0's for dark areas and green '1's for light areas\n"
          "          plain-text: the same as monochrome but the '0's and '1's are not colored\n"
       );
