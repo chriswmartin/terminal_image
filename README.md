@@ -4,7 +4,6 @@
 ![Example output using an image of Mona Lisa](docs/images/example_mona-lisa.png)
 ![Example output using an image of Starry Night](docs/images/example_starry-night.png)
 
-
 ## Requirements
 
 ### [ImageMagick](https://github.com/ImageMagick/ImageMagick)
@@ -57,3 +56,17 @@ terminal_image [image]                                                          
 terminal_image --colorspace=color --width=10 --height=10 [image 1] [image 2] [image 3]   # display multiple images in color at 10x10 scale
 terminal_image --colorspace=monochrome --width=50 --height=50 [image]                    # display an image in monochrome mode at 50x50 scale
 ```
+
+## Examples
+
+### Color Mode
+![Color mode example image](docs/images/example_color.png)
+
+### Limit Mode
+![Limit mode example image](docs/images/example_limit.png)
+
+### Monochrome Mode
+![Monochrome mode example image](docs/images/example_monochrome.png)
+
+### Plain-text Mode
+![Plain-text mode example image](docs/images/example_plain-text.png)
