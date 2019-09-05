@@ -293,8 +293,8 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
     }
 
     case 'm': { // monochrome
-      char *red="\033[1;31m";
-      char *green="\033[1;32m";
+      char *black="\033[1;30m";
+      char *white="\033[1;37m";
       char *reset="\033[0m";
 
       // define a darkness/lightness threshold
@@ -305,15 +305,15 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
       // iterate through all pixels
       for(int i=1; i<pixels+1; i++){
         if(buffer[i-1] <= threshold ){
-          // if the current pixel is darker than the threshold replace it with a red '0'
+          // if the current pixel is darker than the threshold replace it with a black '0'
           buffer[i-1] = 0;
-          printf("%s", red);
+          printf("%s", black);
           printf("%d", buffer[i-1]);
           printf("%s", reset);
         } else {
-          // if the current pixel is lighter than the threshold replace it with a green '1'
+          // if the current pixel is lighter than the threshold replace it with a white '1'
           buffer[i-1] = 1;
-          printf("%s", green);
+          printf("%s", white);
           printf("%d", buffer[i-1]);
           printf("%s", reset);
         }
@@ -455,7 +455,7 @@ int print_usage_and_exit(void){
          "     possible values:\n"
          "          color: 24-bit True Color (default)\n"
          "          limit: displays the image using a limited color palette\n"
-         "          monochrome: represents image using red '0's for dark areas and green '1's for light areas\n"
+         "          monochrome: represents image using black '0's for dark areas and white '1's for light areas\n"
          "          plain-text: the same as monochrome but the '0's and '1's are not colored\n"
       );
 

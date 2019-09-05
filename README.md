@@ -50,7 +50,7 @@ terminal_image [options] [image]
      possible values:
           color: 24-bit True Color (default)
           limit: displays the image using a limited color palette
-          monochrome: represents image using red '0's for dark areas and green '1's for light areas
+          monochrome: represents image using black '0's for dark areas and white '1's for light areas
           plain-text: the same as monochrome but the '0's and '1's are not colored
 
 terminal_image [image]                                                                   # display an image in color scaled to fit your terminal window
