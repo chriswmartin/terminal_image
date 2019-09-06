@@ -1,6 +1,6 @@
 # Terminal Image
 
-![Example output using a color table image](docs/images/example_color-table.png)
+![terminal_image logo](docs/images/logo.jpg)
 ![Example output using an image of Mona Lisa](docs/images/example_mona-lisa.png)
 ![Example output using an image of Starry Night](docs/images/example_starry-night.png)
 
