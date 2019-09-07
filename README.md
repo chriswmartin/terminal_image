@@ -1,6 +1,11 @@
 # Terminal Image
 
 ![terminal_image logo](docs/images/logo.jpg)
+
+terminal_image is a terminal image viewer that can display images in a variety of different formats including full-color, monochrome, and plain-text
+
+---
+
 ![Example output using an image of Mona Lisa](docs/images/example_mona-lisa.png)
 ![Example output using an image of Starry Night](docs/images/example_starry-night.png)
 
