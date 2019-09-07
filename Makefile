@@ -6,7 +6,7 @@ LDFLAGS = `pkg-config --libs --cflags MagickWand` -lmagic
 
 OPTIMIZATION_LEVEL = 3
 
-CFLAGS = -Wall -Werror -pedantic -std=c99 -O$(OPTIMIZATION_LEVEL)
+CFLAGS = -Wall -Werror -pedantic -std=c99 -lm -O$(OPTIMIZATION_LEVEL)
 
 $(TARGET): $(SRC)
 	$(CC) -o $@ $(LDFLAGS) $^ $(CFLAGS)

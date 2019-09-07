@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <MagickWand/MagickWand.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 #include <magic.h>
 #include <string.h>
@@ -208,7 +209,6 @@ int process_image(char *colorspace, char *image, char *output_name){
 
     // increate the contrast
     MagickBrightnessContrastImage(m_wand, brightness, contrast);
-
   } 
 
   // set image depth to 8 after other transformations - mostly to help get correct RGB pixel values
