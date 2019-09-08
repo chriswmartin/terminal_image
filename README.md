@@ -1,5 +1,7 @@
 # Terminal Image
 
+[![Build Status](https://travis-ci.org/chriswmartin/terminal_image.svg?branch=master)](https://travis-ci.org/chriswmartin/terminal_image)
+
 ![terminal_image logo](docs/images/logo.jpg)
 
 terminal_image is a terminal image viewer that can display images in a variety of different formats including full-color, monochrome, and plain-text
