@@ -6,5 +6,7 @@ language: c
 os:
   - linux
   - osx
+dist: bionic
+
 compiler: clang
 script: make
