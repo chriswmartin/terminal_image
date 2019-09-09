@@ -6,7 +6,7 @@ env:
   - LD_LIBRARY_PATH=/usr/local/lib PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
 language: c
-compiler: clang
+compiler: gcc
 os:
   - linux
   - osx
