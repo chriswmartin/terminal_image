@@ -11,21 +11,30 @@ terminal_image is a terminal image viewer that can display images in a variety o
 ![Example output using an image of Mona Lisa](docs/images/example_mona-lisa.png)
 ![Example output using an image of Starry Night](docs/images/example_starry-night.png)
 
-## Requirements
+## Dependencies
 
-### [ImageMagick](https://github.com/ImageMagick/ImageMagick)
+### [ImageMagick 7](https://github.com/ImageMagick/ImageMagick) & [Libmagic](https://github.com/file/file)
 
 OSX
 ```bash
-brew install imagemagick
+brew install imagemagick libmagic
 ```
 Ubuntu
 ```bash
-apt install imagemagick
+# compile the latest imagemagick from source
+wget https://www.imagemagick.org/download/ImageMagick.tar.gz
+tar xvzf ImageMagick.tar.gz
+cd ImageMagick-7*
+./configure
+make && sudo make install
+sudo ldconfig /usr/local/lib
+
+sudo apt install libmagic
 ```
 Arch Linux
 ```bash
-pacman -S imagemagick
+# libmagic is pre-installed so you only need to install imagemagick
+sudo pacman -S imagemagick
 ```
 
 ## Building
