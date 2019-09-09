@@ -3,8 +3,7 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd .; wget https://www.imagemagick.org/download/ImageMagick.tar.gz; tar xvzf ImageMagick.tar.gz; cd ImageMagick-7*; ./configure; make && sudo make install; sudo ldconfig /usr/local/lib; sudo apt install -y libmagic-dev; popd; fi
 
 env:
-  - LD_LIBRARY_PATH=/usr/local/lib
-  - PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+  - LD_LIBRARY_PATH=/usr/local/lib PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
 language: c
 compiler: gcc
