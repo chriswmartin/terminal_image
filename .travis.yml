@@ -6,7 +6,7 @@ env:
   - LD_LIBRARY_PATH=/usr/local/lib
 
 language: c
-compiler: clang
+compiler: gcc
 os:
   - linux
   - osx
