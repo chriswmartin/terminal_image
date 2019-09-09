@@ -10,6 +10,6 @@ compiler: gcc
 os:
   - linux
   - osx
-dist: bionic
+    # dist: bionic
 
 script: make
