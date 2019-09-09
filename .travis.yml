@@ -1,6 +1,9 @@
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install imagemagick libmagic; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd .; wget https://www.imagemagick.org/download/ImageMagick.tar.gz; tar xvzf ImageMagick.tar.gz; cd ImageMagick-7*; ./configure; make && sudo make install; sudo ldconfig /usr/local/lib; sudo apt install -y libmagic-dev pkg-config; popd; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd .; wget https://www.imagemagick.org/download/ImageMagick.tar.gz; tar xvzf ImageMagick.tar.gz; cd ImageMagick-7*; ./configure; make && sudo make install; sudo ldconfig /usr/local/lib; sudo apt install -y libmagic-dev; popd; fi
+
+env:
+  - LD_LIBRARY_PATH=/usr/local/lib
 
 language: c
 compiler: clang
