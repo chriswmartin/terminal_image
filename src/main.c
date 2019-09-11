@@ -5,25 +5,31 @@
 #include <magic.h>
 #include <string.h>
 #include <getopt.h>
+#include <stdbool.h>
 
 // define a struct to hold our resized image dimensions
 struct resized_image_dimensions{int width, height;};
-struct resized_image_dimensions resize_image(int width, int height, char *image, char *output_name);
-int process_image(char *colorspace, char *image, char *output_name);
-unsigned char * get_image_pixels(int width, int height, char *colorspace, char *image);
+struct resized_image_dimensions resize_image(int width, int height, const char *image, const char *output_name);
+int process_image(char *colorspace, const char *image, const char *output_name);
+unsigned char * get_image_pixels(int width, int height, char *colorspace, const char *image);
 int display_image(int width, int height, char *colorspace, unsigned char *buffer);
 struct closest_color_values{int r, g, b;};
 struct closest_color_values find_closest_color(int r, int g, int b);
 int check_file(char *file);
-int print_usage_and_exit(void);
+void print_usage_and_exit(void);
+
+// set verbose to false unless --verbose flag is used
+bool verbose = false;
 
 int main (int argc, char *argv[]){
-  // default width & height values if --width & --height flags aren't used
-  int width = 0, height = 0;
-  
+  const char *version = "1.0";
+
   // default colorspace value if --colorspace flag isn't used
   char *colorspace = "color";
 
+  // default width & height values if --width & --height flags aren't used
+  int width = 0, height = 0;
+  
   // initialize a struct to hold our resized image dimensions
   struct resized_image_dimensions dimensions;
 
@@ -31,7 +37,7 @@ int main (int argc, char *argv[]){
   // TODO: use tmpfile() along with MagickWand
   // file descriptor functions:
   // MagickReadImageFile() & MagickWriteImageFile
-  char *tmp_file = "/tmp/terminal_image_tmp.jpg";
+  const char *tmp_file = "/tmp/terminal_image_tmp.jpg";
   
   // if there is not at least one argument exit
   if(argc < 2){
@@ -43,11 +49,12 @@ int main (int argc, char *argv[]){
     { "width", required_argument, NULL, 'w' },
     { "height", required_argument, NULL, 'h' },
     { "colorspace", required_argument, NULL, 'c' },
+    { "verbose", no_argument, NULL, 'v' },
     { 0, 0, 0, 0 }
   };
 
   int c;
-  while ((c = getopt_long(argc, argv, "w:h:c:", longopts, NULL)) != -1) {
+  while ((c = getopt_long(argc, argv, "w:h:c:v", longopts, NULL)) != -1) {
   //while ((c = getopt_long(argc, argv, "w:h:c:W;", longopts, NULL)) != -1) {
     switch (c) {
     case 'w':
@@ -79,6 +86,10 @@ int main (int argc, char *argv[]){
             exit(1);
         }
       } 
+      break;
+    case 'v':
+      verbose = true;
+      printf("terminal_image (v. %s)\n\n", version);
       break;
     case 0:
       break; 
@@ -128,7 +139,7 @@ int main (int argc, char *argv[]){
   return 0;
 }
 
-struct resized_image_dimensions resize_image(int width, int height, char *image, char *output_name){
+struct resized_image_dimensions resize_image(int width, int height, const char *image, const char *output_name){
   struct resized_image_dimensions dimensions;
 
   // initialize MagickWand
@@ -144,24 +155,21 @@ struct resized_image_dimensions resize_image(int width, int height, char *image,
   if (width >= 1 && height >= 1){
     dimensions.width = width;
     dimensions.height = height;
-
-    // resize the image
-    MagickResizeImage(m_wand, width, height, LanczosFilter);
   } else {
       // if --width & --height flags are not used resize to fit current terminal window
       
       struct winsize w;
       ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
   
-      int terminal_width = w.ws_col;
-      int terminal_height = w.ws_row;
+      const int terminal_width = w.ws_col;
+      const int terminal_height = w.ws_row;
   
-      int image_width = MagickGetImageWidth(m_wand) * 2;
-      int image_height = MagickGetImageHeight(m_wand);
+      const int image_width = MagickGetImageWidth(m_wand) * 2;
+      const int image_height = MagickGetImageHeight(m_wand);
 
       double ratio = 0; 
-      double ratioX = (double) terminal_width / (double) image_width;
-      double ratioY = (double) terminal_height / (double) image_height;
+      const double ratioX = (double) terminal_width / (double) image_width;
+      const double ratioY = (double) terminal_height / (double) image_height;
 
       if (ratioX > ratioY){
         ratio = ratioY;
@@ -169,27 +177,29 @@ struct resized_image_dimensions resize_image(int width, int height, char *image,
           ratio = ratioX;
       }
 
-      int width = image_width * ratio;
-      int height = image_height * ratio;
-
-      dimensions.width = width;
-      dimensions.height = height;
-
-      // resize the image
-      MagickResizeImage(m_wand, width, height, LanczosFilter);
+      dimensions.width = image_width * ratio;
+      dimensions.height = image_height * ratio;
     }
+    
+  // resize the image
+  MagickResizeImage(m_wand, dimensions.width, dimensions.height, LanczosFilter);
   
   // save our edited image
   MagickWriteImage(m_wand,output_name);
 
   // destroy MagickWand
-  if(m_wand)m_wand = DestroyMagickWand(m_wand);
+  //if(m_wand)m_wand = DestroyMagickWand(m_wand);
+  DestroyMagickWand(m_wand);
   MagickWandTerminus();
+  
+  if (verbose == true){
+    printf("width: %d / height: %d\n", dimensions.width/2, dimensions.height);
+  }
 
   return dimensions; 
 }
 
-int process_image(char *colorspace, char *image, char *output_name){
+int process_image(char *colorspace, const char *image, const char *output_name){
   // initialize MagickWand
   MagickWand *m_wand = NULL;
   MagickWandGenesis();
@@ -199,10 +209,10 @@ int process_image(char *colorspace, char *image, char *output_name){
   MagickReadImage(m_wand,image);
 
   if (strncmp(colorspace, "monochrome", 10) == 0 || strncmp(colorspace, "plain-text", 10) == 0){
-    int number_of_colors = 16;
-    int tree_depth = 1;
-    int brightness = 0;
-    int contrast = 50;
+    const int number_of_colors = 16;
+    const int tree_depth = 1;
+    const int brightness = 0;
+    const int contrast = 50;
       
     // convert the image to Grayscale
     MagickQuantizeImage(m_wand, number_of_colors, GRAYColorspace, tree_depth, NoDitherMethod, MagickFalse);
@@ -218,13 +228,13 @@ int process_image(char *colorspace, char *image, char *output_name){
   MagickWriteImage(m_wand,output_name);
 
   // destroy MagickWand
-  if(m_wand)m_wand = DestroyMagickWand(m_wand);
+  DestroyMagickWand(m_wand);
   MagickWandTerminus();
 
   return 0;
 }
 
-unsigned char * get_image_pixels(int width, int height, char *colorspace, char *image){
+unsigned char * get_image_pixels(int width, int height, char *colorspace, const char *image){
   // initialize MagickWand
   MagickWand *m_wand = NULL;
   MagickWandGenesis();
@@ -234,25 +244,36 @@ unsigned char * get_image_pixels(int width, int height, char *colorspace, char *
   // until after reading 'colorspace' but we must always return it
   unsigned char *buffer = NULL;
 
+  int buffer_size = 0;
+
   // read out processed image
   MagickReadImage(m_wand, image);
 
   if (strncmp(colorspace, "color", 5) == 0 || strncmp(colorspace, "limit", 5) == 0){
+    buffer_size = width * height * 3;
+
     // allocate memory
-    buffer = calloc(width * height * 3,1);
+    buffer = calloc(buffer_size, 1);
   
     // export the color ("RGB") values of all pixels into the array we just allocated space for
     MagickExportImagePixels(m_wand, 0,0,width,height, "RGB", CharPixel, buffer);
   } else {
+      buffer_size = width * height;
+    
       // allocate memory
-      buffer = calloc(width * height,1);
+      buffer = calloc(buffer_size, 1);
       
       // export the grayscale ("I") value of all pixels into the array we just allocated space for
       MagickExportImagePixels(m_wand, 0,0,width,height, "I", CharPixel, buffer);
+    
+  }
+  
+  if (verbose == true){
+    printf("allocated %d bytes of memory\n", buffer_size);
   }
 
   // destroy MagickWand
-  if(m_wand)m_wand = DestroyMagickWand(m_wand);	
+  DestroyMagickWand(m_wand);	
   MagickWandTerminus();
 
   // return the pixel array so that we can use it when displaying the image later
@@ -263,9 +284,9 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
   switch(colorspace[0]){
 
     case 'c': { // color
-      char *text = "\u2580";
+      const char *text = "\u2580";
 
-      int pixels = width * height * 3;
+      const int pixels = width * height * 3;
 
       int x = 0;
        
@@ -291,14 +312,14 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
     }
 
     case 'm': { // monochrome
-      char *black="\033[1;30m";
-      char *white="\033[1;37m";
-      char *reset="\033[0m";
+      const char *black="\033[1;30m";
+      const char *white="\033[1;37m";
+      const char *reset="\033[0m";
 
       // define a darkness/lightness threshold
-      int threshold = 127;
+      const int threshold = 127;
     
-      int pixels = width * height;
+      const int pixels = width * height;
     
       // iterate through all pixels
       for(int i=1; i<pixels+1; i++){
@@ -325,9 +346,9 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
 
     case 'p': { // plain-text
       // define a darkness/lightness threshold
-      int threshold = 127;
+      const int threshold = 127;
 
-      int pixels = width * height;
+      const int pixels = width * height;
     
       // iterate through all pixels
       for(int i=1; i<pixels+1; i++){
@@ -349,9 +370,9 @@ int display_image(int width, int height, char *colorspace, unsigned char *buffer
     }
 
     case 'l': { // limit
-      char *text = "\u2580";
+      const char *text = "\u2580";
 
-      int pixels = width * height * 3;
+      const int pixels = width * height * 3;
       
       int x = 0;
        
@@ -385,7 +406,7 @@ struct closest_color_values find_closest_color(int r, int g, int b) {
   int difference = 1000;
 
   // RGB color values for 'limit' mode
-  int colors[][3] = {
+  const int colors[][3] = {
     {255, 255, 255}, // white
     {0,0,0}, // black
     {255, 0, 0}, // red
@@ -421,6 +442,10 @@ int check_file(char *file){
   // check the mime type of the input file using libmagic to determine whether of not it is an image
   const char *result = magic_file(magic, file);
 
+  if (verbose == true){
+    printf("%s - %s\n", file, result);
+  }
+
   // we only need the first section of the mime type output so delete the rest
   char *result_pointer = strchr(result, '/');
   if (result_pointer != NULL) {
@@ -428,8 +453,7 @@ int check_file(char *file){
   }
 
   if (strncmp(result, "image", 5) == 0){
-    // if the provided file is an image print it's name and continue
-    printf("%s\n", file);
+    // if the provided file is an image continue
     return 0;
   } else {
     // if provided with a non-image file exit
@@ -439,9 +463,11 @@ int check_file(char *file){
 }
 
 // print usage text
-int print_usage_and_exit(void){
+void print_usage_and_exit(void){
   printf("USAGE:\n"
          "terminal_image [options] [image]\n\n"
+         "--verbose, -v\n"
+         "     print detailed information about each image\n\n"
          "--width, -w <number>\n"
          "     set width of output, must be used in conjunction with --height\n\n"
          "--height -h <number>\n"

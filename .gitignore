@@ -2,6 +2,9 @@ terminal_image
 terminal_image.o
 .DS_Store
 
+test/*
+*.dSYM
+
 *.i64
 *.id0
 *.id1

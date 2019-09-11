@@ -54,6 +54,9 @@ By default terminal_image will display images in [24-bit color](https://gist.git
 USAGE:
 terminal_image [options] [image]
 
+--verbose, -v
+     print detailed information about each image
+
 --width, -w <number>
      set width of output, must be used in conjunction with --height
 
