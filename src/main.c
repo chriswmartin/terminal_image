@@ -22,7 +22,7 @@ void print_usage_and_exit(void);
 bool verbose = false;
 
 int main(int argc, char *argv[]){
-  const char *version = "1.0";
+  const char *version = "1.0.1";
 
   // default colorspace value if --colorspace flag isn't used
   char *colorspace = "color";
@@ -79,10 +79,24 @@ int main(int argc, char *argv[]){
     case 'c':
       if (optarg != NULL){
         if (strncmp(optarg, "color", 5) == 0 ||
+            strncmp(optarg, "c", 1) == 0 ||
             strncmp(optarg, "monochrome", 10) == 0 ||
+            strncmp(optarg, "m", 1) == 0 ||
             strncmp(optarg, "plain-text", 10) == 0 ||
-            strncmp(optarg, "limit", 5) == 0){
+            strncmp(optarg, "p", 1) == 0 ||
+            strncmp(optarg, "limit", 5) == 0 ||
+            strncmp(optarg, "l", 1) == 0) {
+          if (strncmp(optarg, "c", 1) == 0){
+            colorspace = "color";
+          } else if (strncmp(optarg, "m", 1) == 0){
+            colorspace = "monochrome";
+          } else if (strncmp(optarg, "p", 1) == 0){
+            colorspace = "plain-text";
+          } else if (strncmp(optarg, "l", 1) == 0){
+            colorspace = "limit";
+          } else {
           colorspace = optarg;
+          }
         } else {
             printf("please specify either 'color', 'limit', 'monochrome', or 'plain-text'\n");
             exit(1);
@@ -268,9 +282,15 @@ unsigned char * get_image_pixels(int width, int height, char *colorspace, const 
       // allocate memory
       buffer = calloc(buffer_size, 1);
 
-      // export the grayscale ("I") value of all pixels
-      // into the array we just allocated space for
-      MagickExportImagePixels(m_wand, 0, 0, width, height, "I", CharPixel, buffer);
+      if (buffer != NULL){
+        // export the grayscale ("I") value of all pixels
+        // into the array we just allocated space for
+        MagickExportImagePixels(m_wand, 0, 0, width, height, "I", CharPixel, buffer);
+      } else {
+          printf("failed to allocate memory for image - the image may be too large");
+          exit(1);
+      }
+
   }
 
   if (verbose == true){
@@ -455,6 +475,10 @@ int check_file(char *file){
 
   if (verbose == true){
     printf("%s - %s\n", file, result);
+
+    if (strncmp(result, "image/heic", 10) == 0){
+      printf("ImageMagick does not often support HEIC by default\nresults may not appear as expected\n");
+    }
   }
 
   // we only need the first section of the mime type output so delete the rest
@@ -467,10 +491,10 @@ int check_file(char *file){
     // if the provided file is an image continue
     return 0;
   } else {
-    // if provided with a non-image file exit
-    printf("%s is not a valid image file\n", file);
-    exit(1);
-  }
+      // if provided with a non-image file exit
+      printf("%s is not a valid image file\n", file);
+      exit(1);
+    }
 }
 
 // print usage text
