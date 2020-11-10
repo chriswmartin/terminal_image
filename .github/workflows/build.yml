@@ -21,6 +21,8 @@ jobs:
       run: tar xvzf ImageMagick.tar.gz
     - name: enter ImageMagick directory
       run: cd ImageMagick-7*
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
     - name: configure ImageMagick
       run: bash configure
     - name: make & install ImageMagick
