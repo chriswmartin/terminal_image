@@ -13,23 +13,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-    - name: download ImageMagick 7 source
-      run: wget https://www.imagemagick.org/download/ImageMagick.tar.gz
-    - name: untar ImageMagick
-      run: tar xvzf ImageMagick.tar.gz
-    - name: enter ImageMagick directory
-      run: cd ImageMagick-7*
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-    - name: configure ImageMagick
-      run: bash configure
-    - name: make & install ImageMagick
-      run: make && sudo make install
-    - name: run ldconfig
-      run: sudo ldconfig /usr/local/lib
-    - name: install libmagic
-      run: sudo apt install libmagic
+    - name: install ImageMagick > 7 from source
+      run: |
+          wget https://www.imagemagick.org/download/ImageMagick.tar.gz
+          tar xvzf ImageMagick.tar.gz && cd ImageMagick-7*
+          pwd
+          ./configure
+          make && sudo make install
+          sudo ldconfig /usr/local/lib
+          sudo apt install libmagic
     - name: make Terminal Image
       run: make
