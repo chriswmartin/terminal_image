@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
     - name: download ImageMagick 7 source
       run: wget https://www.imagemagick.org/download/ImageMagick.tar.gz
     - name: untar ImageMagick
@@ -20,7 +22,7 @@ jobs:
     - name: enter ImageMagick directory
       run: cd ImageMagick-7*
     - name: configure ImageMagick
-      run: ./configure
+      run: bash configure
     - name: make & install ImageMagick
       run: make && sudo make install
     - name: run ldconfig
